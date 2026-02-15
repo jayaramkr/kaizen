@@ -578,6 +578,11 @@ class TestSync:
         assert result.tips_generated == 2
         phoenix_sync.client.update_entities.assert_called()
 
+        # Verify task_description is persisted in tip entity metadata
+        tip_update_call = phoenix_sync.client.update_entities.call_args_list[-1]
+        tip_entities = tip_update_call.kwargs["entities"]
+        assert all(e.metadata.get("task_description") == "Hello" for e in tip_entities)
+
     @patch("kaizen.sync.phoenix_sync.urllib.request.urlopen")
     @patch("kaizen.sync.phoenix_sync.generate_tips")
     def test_sync_returns_correct_counts(self, mock_generate_tips, mock_urlopen, phoenix_sync):
