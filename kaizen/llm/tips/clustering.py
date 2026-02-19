@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import logging
+from functools import lru_cache
 from pathlib import Path
 
 import litellm
@@ -16,6 +18,15 @@ from kaizen.schema.core import RecordedEntity
 from kaizen.schema.exceptions import KaizenException
 from kaizen.schema.tips import Tip, TipGenerationResponse
 from kaizen.utils.utils import clean_llm_response
+
+logger = logging.getLogger(__name__)
+
+MAX_CLUSTER_ENTITIES = 5000
+
+
+@lru_cache(maxsize=4)
+def _get_sentence_transformer(model_name: str) -> SentenceTransformer:
+    return SentenceTransformer(model_name)
 
 
 def _union_find(n: int, pairs: list[tuple[int, int]]) -> list[list[int]]:
@@ -81,19 +92,26 @@ def cluster_entities(
     if len(filtered) < 2:
         return []
 
+    if len(filtered) > MAX_CLUSTER_ENTITIES:
+        logger.warning(
+            "Too many entities for clustering (%d > %d). Truncating to first %d.",
+            len(filtered),
+            MAX_CLUSTER_ENTITIES,
+            MAX_CLUSTER_ENTITIES,
+        )
+        filtered = filtered[:MAX_CLUSTER_ENTITIES]
+
     descriptions = [e.metadata["task_description"] for _, e in filtered]
 
-    model = SentenceTransformer(embedding_model)
+    model = _get_sentence_transformer(embedding_model)
     embeddings = model.encode(descriptions, normalize_embeddings=True)
     similarity_matrix = np.asarray(embeddings) @ np.asarray(embeddings).T
 
-    # Find pairs exceeding threshold
+    # Find pairs meeting threshold (vectorized upper-triangle extraction)
     n = len(filtered)
-    pairs: list[tuple[int, int]] = []
-    for i in range(n):
-        for j in range(i + 1, n):
-            if similarity_matrix[i, j] > threshold:
-                pairs.append((i, j))
+    mask = np.triu(similarity_matrix >= threshold, k=1)
+    rows, cols = np.where(mask)
+    pairs: list[tuple[int, int]] = list(zip(rows.tolist(), cols.tolist()))
 
     groups = _union_find(n, pairs)
 
@@ -157,11 +175,12 @@ def combine_cluster(entities: list[RecordedEntity]) -> list[Tip]:
         constrained_decoding_supported=constrained_decoding_supported,
     )
 
+    litellm.enable_json_schema_validation = constrained_decoding_supported
+
     last_error: Exception | None = None
     for attempt in range(3):
         try:
             if constrained_decoding_supported:
-                litellm.enable_json_schema_validation = True
                 clean_response = (
                     completion(
                         model=llm_settings.tips_model,
@@ -173,7 +192,6 @@ def combine_cluster(entities: list[RecordedEntity]) -> list[Tip]:
                     .message.content
                 )
             else:
-                litellm.enable_json_schema_validation = False
                 response = (
                     completion(
                         model=llm_settings.tips_model,

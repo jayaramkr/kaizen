@@ -1,9 +1,13 @@
+import logging
+
 from kaizen.schema.core import Entity, Namespace, RecordedEntity
 from kaizen.schema.exceptions import NamespaceNotFoundException
 from kaizen.schema.conflict_resolution import EntityUpdate
 from kaizen.schema.tips import ConsolidationResult
 from kaizen.config.kaizen import KaizenConfig
 from kaizen.backend.base import BaseEntityBackend
+
+logger = logging.getLogger(__name__)
 
 
 class KaizenClient:
@@ -72,13 +76,14 @@ class KaizenClient:
         self.backend.delete_entity_by_id(namespace_id, entity_id)
 
     def cluster_tips(
-        self, namespace_id: str, threshold: float | None = None
+        self, namespace_id: str, threshold: float | None = None, limit: int = 10000
     ) -> list[list[RecordedEntity]]:
         """Cluster guideline entities by task description similarity.
 
         Args:
             namespace_id: Namespace to fetch entities from.
             threshold: Cosine similarity threshold (0-1). Defaults to config value.
+            limit: Maximum number of guideline entities to fetch for clustering.
 
         Returns:
             List of clusters, each containing related RecordedEntity objects.
@@ -88,7 +93,7 @@ class KaizenClient:
         if threshold is None:
             threshold = self.config.clustering_threshold
 
-        entities = self.get_all_entities(namespace_id, filters={"type": "guideline"}, limit=10000)
+        entities = self.get_all_entities(namespace_id, filters={"type": "guideline"}, limit=limit)
         return cluster_entities(entities, threshold=threshold)
 
     def consolidate_tips(
@@ -106,37 +111,49 @@ class KaizenClient:
         from kaizen.llm.tips.clustering import combine_cluster
 
         clusters = self.cluster_tips(namespace_id, threshold=threshold)
-        tips_before = sum(len(c) for c in clusters)
+        clusters_found = 0
+        tips_before = 0
         tips_after = 0
 
         for cluster in clusters:
-            consolidated_tips = combine_cluster(cluster)
-            tips_after += len(consolidated_tips)
+            try:
+                consolidated_tips = combine_cluster(cluster)
 
-            # Delete original entities
-            for entity in cluster:
-                self.delete_entity_by_id(namespace_id, entity.id)
+                # Insert consolidated entities first, preserving task_description from first entity
+                task_description = (cluster[0].metadata or {}).get("task_description", "")
+                new_entities = [
+                    Entity(
+                        content=tip.content,
+                        type="guideline",
+                        metadata={
+                            "task_description": task_description,
+                            "rationale": tip.rationale,
+                            "category": tip.category,
+                            "trigger": tip.trigger,
+                        },
+                    )
+                    for tip in consolidated_tips
+                ]
+                if new_entities:
+                    self.update_entities(namespace_id, new_entities, enable_conflict_resolution=False)
 
-            # Insert consolidated entities, preserving task_description from first entity
-            task_description = (cluster[0].metadata or {}).get("task_description", "")
-            new_entities = [
-                Entity(
-                    content=tip.content,
-                    type="guideline",
-                    metadata={
-                        "task_description": task_description,
-                        "rationale": tip.rationale,
-                        "category": tip.category,
-                        "trigger": tip.trigger,
-                    },
+                # Only delete originals after successful insert
+                for entity in cluster:
+                    self.delete_entity_by_id(namespace_id, entity.id)
+
+                clusters_found += 1
+                tips_before += len(cluster)
+                tips_after += len(consolidated_tips)
+            except Exception:
+                logger.warning(
+                    "Failed to consolidate cluster of %d entities (IDs: %s); skipping.",
+                    len(cluster),
+                    [e.id for e in cluster],
+                    exc_info=True,
                 )
-                for tip in consolidated_tips
-            ]
-            if new_entities:
-                self.update_entities(namespace_id, new_entities, enable_conflict_resolution=False)
 
         return ConsolidationResult(
-            clusters_found=len(clusters),
+            clusters_found=clusters_found,
             tips_before=tips_before,
             tips_after=tips_after,
         )

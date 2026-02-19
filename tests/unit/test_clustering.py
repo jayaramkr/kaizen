@@ -4,6 +4,7 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
 
 from kaizen.llm.tips.clustering import _union_find, cluster_entities
 from kaizen.schema.core import RecordedEntity
@@ -28,6 +29,7 @@ def _make_entity(entity_id: str, task_description: str | None = None) -> Recorde
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestUnionFind:
     def test_no_pairs(self):
         groups = _union_find(3, [])
@@ -76,7 +78,8 @@ def _mock_encode(descriptions, normalize_embeddings=True):
     return np.array(vectors)
 
 
-@patch("kaizen.llm.tips.clustering.SentenceTransformer")
+@pytest.mark.unit
+@patch("kaizen.llm.tips.clustering._get_sentence_transformer")
 class TestClusterEntities:
     def test_groups_similar_tasks(self, mock_st_cls):
         mock_model = MagicMock()
@@ -141,7 +144,9 @@ class TestClusterEntities:
         assert clusters == []
         mock_st_cls.assert_not_called()
 
-    def test_uses_default_embedding_model(self, mock_st_cls):
+    @patch("kaizen.config.milvus.milvus_other_settings")
+    def test_uses_default_embedding_model(self, mock_settings, mock_st_cls):
+        mock_settings.embedding_model = "test-default-model"
         mock_model = MagicMock()
         mock_model.encode = _mock_encode
         mock_st_cls.return_value = mock_model
@@ -154,6 +159,4 @@ class TestClusterEntities:
         cluster_entities(entities, threshold=0.9)
 
         # Should use the default model from config
-        mock_st_cls.assert_called_once()
-        call_arg = mock_st_cls.call_args[0][0]
-        assert "MiniLM" in call_arg or len(call_arg) > 0
+        mock_st_cls.assert_called_once_with("test-default-model")

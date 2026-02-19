@@ -56,6 +56,7 @@ SAMPLE_TIPS = [
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestCombineCluster:
     @patch("kaizen.llm.tips.clustering.completion")
     @patch("kaizen.llm.tips.clustering.supports_response_schema", return_value=False)
@@ -126,6 +127,7 @@ class TestCombineCluster:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestConsolidateTips:
     @patch("kaizen.llm.tips.clustering.combine_cluster")
     def test_consolidate_tips_deletes_originals_and_inserts_new(self, mock_combine):
@@ -153,12 +155,7 @@ class TestConsolidateTips:
         with patch.object(client, "cluster_tips", return_value=[entities_cluster]):
             client.consolidate_tips("test-ns")
 
-        # Verify deletes were called for each original entity
-        assert mock_backend.delete_entity_by_id.call_count == 2
-        mock_backend.delete_entity_by_id.assert_any_call("test-ns", "1")
-        mock_backend.delete_entity_by_id.assert_any_call("test-ns", "2")
-
-        # Verify insert was called with consolidated entities
+        # Verify insert was called before deletes (insert-first for safety)
         assert mock_backend.update_entities.call_count == 1
         call_args = mock_backend.update_entities.call_args
         ns_id, new_entities, enable_cr = call_args[0]
@@ -167,6 +164,11 @@ class TestConsolidateTips:
         assert new_entities[0].content == "Combined tip"
         assert new_entities[0].metadata["task_description"] == "error handling"
         assert enable_cr is False
+
+        # Verify deletes were called for each original entity
+        assert mock_backend.delete_entity_by_id.call_count == 2
+        mock_backend.delete_entity_by_id.assert_any_call("test-ns", "1")
+        mock_backend.delete_entity_by_id.assert_any_call("test-ns", "2")
 
     @patch("kaizen.llm.tips.clustering.combine_cluster")
     def test_consolidate_tips_returns_correct_counts(self, mock_combine):

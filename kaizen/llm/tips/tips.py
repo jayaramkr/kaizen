@@ -8,7 +8,7 @@ from litellm import completion, get_supported_openai_params, supports_response_s
 from kaizen.config.llm import llm_settings
 from kaizen.utils.utils import clean_llm_response
 from kaizen.schema.exceptions import KaizenException
-from kaizen.schema.tips import TipGenerationResponse, TipGenerationResult
+from kaizen.schema.tips import DEFAULT_TASK_DESCRIPTION, TipGenerationResponse, TipGenerationResult
 from pathlib import Path
 
 
@@ -91,7 +91,7 @@ def parse_openai_agents_trajectory(messages: list[dict]) -> dict:
             steps_text.append(f"**Step {i} - Observation:**\n{content}")
 
     return {
-        "task_instruction": task_instruction or "Task description unknown",
+        "task_instruction": task_instruction or DEFAULT_TASK_DESCRIPTION,
         "trajectory_summary": "\n\n".join(steps_text),
         "function_calls": function_calls,
         "num_steps": len([s for s in agent_steps if s["type"] in ["action", "reasoning"]]),
