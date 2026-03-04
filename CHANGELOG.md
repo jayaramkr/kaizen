@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.1 (2026-03-04)
+
+### Bug Fixes
+
+- **packaging**: Include kaizen subpackages in distribution
+  ([#84](https://github.com/AgentToolkit/kaizen/pull/84),
+  [`1bac14c`](https://github.com/AgentToolkit/kaizen/commit/1bac14cdb08b85c46dd87b36368431c802367d1e))
+
+
 ## v1.0.0 (2026-03-04)
 
 ### Bug Fixes
