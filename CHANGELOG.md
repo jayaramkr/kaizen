@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.2 (2026-03-05)
+
+### Bug Fixes
+
+- Include jinja prompt templates in package artifacts
+  ([#85](https://github.com/AgentToolkit/kaizen/pull/85),
+  [`0c29aba`](https://github.com/AgentToolkit/kaizen/commit/0c29abadae3b0f537761e42a32d6812a7efbe2c6))
+
+
 ## v1.0.1 (2026-03-04)
 
 ### Bug Fixes
