@@ -34,7 +34,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/kaizen-mcp-${{ matrix.image-suffix }}
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/kaizen
           flavor: |
             suffix=-${{ matrix.image-suffix }},onlatest=true
           tags: |
