@@ -163,6 +163,7 @@ def combine_cluster(entities: list[RecordedEntity]) -> list[Tip]:
             "rationale": (e.metadata or {}).get("rationale", ""),
             "category": (e.metadata or {}).get("category", "strategy"),
             "trigger": (e.metadata or {}).get("trigger", ""),
+            "implementation_steps": (e.metadata or {}).get("implementation_steps", []),
         }
         for e in entities
     ]
