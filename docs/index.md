@@ -66,7 +66,13 @@ Evolve is a system designed to help agents improve over time by learning from th
 
 Evolve analyzes agent trajectories to extract guidelines and best practices, then recalls them in future sessions. It supports both a lightweight file-based mode (Evolve Lite) and a full mode backed by an MCP server with vector storage and LLM-based conflict resolution.
 <figure>
-    <img class="arch-narrow" src="assets/architecture.svg"      alt="Architecture">
-    <img class="arch-wide"   src="assets/architecture-wide.svg" alt="Architecture">
+    <picture class="arch light">
+        <source media="(min-width: 1000px)" srcset="assets/architecture-wide-light.svg">
+        <img src="assets/architecture-light.svg" alt="Architecture">
+    </picture>
+    <picture class="arch dark">
+        <source media="(min-width: 1000px)" srcset="assets/architecture-wide-dark.svg">
+        <img src="assets/architecture-dark.svg" alt="Architecture">
+    </picture>
     <!-- <figcaption>Does your agent make the same mistake twice?</figcaption> -->
 </figure>

@@ -6,7 +6,7 @@
    aria-label="Architecture diagram showing Application, Interaction, Processing, and Persistence layers">
    <defs id="defs1">
       <style id="style1">
-         :root {
+         svg {
          --c-layer-fill: #ffffff;
          --c-layer-stroke: #26a699;
          --c-box-fill: #009485;
@@ -15,18 +15,6 @@
          --c-text-dim: #dddddd;
          --c-italic: #444444;
          --c-arrow: #333333;
-         }
-         @media (prefers-color-scheme: dark) {
-         :root {
-         --c-layer-fill: #1e1e1e00;
-         --c-layer-stroke: #000000;
-         --c-box-fill: #1e1e1e;
-         --c-box-stroke: #aaaaaa;
-         --c-text: #dddddd;
-         --c-text-dim: #999999;
-         --c-italic: #bbbbbb;
-         --c-arrow: #aaaaaa;
-         }
          }
          .layer    { fill: var(--c-layer-fill);   stroke: var(--c-layer-stroke); stroke-width: 1; }
          .box      { fill: var(--c-box-fill);      stroke: var(--c-box-stroke);   stroke-width: 1.5; }
