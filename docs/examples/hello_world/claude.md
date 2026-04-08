@@ -28,7 +28,11 @@ docker run --rm -it my-claude bash
 ```
 
 ## Step 1: Install Evolve
-Install Evolve by following the [installation instructions](../../installation/index.md#claude-code-plugin-marketplace)
+Install Evolve by following the [installation instructions →](../../installation/index.md#claude-code-plugin-marketplace) or run:
+```bash
+claude plugin marketplace add AgentToolkit/altk-evolve
+claude plugin install evolve-lite
+```
 
 ## Step 2: Running in Claude Code
 In a terminal, run:
