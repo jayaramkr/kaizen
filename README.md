@@ -2,10 +2,11 @@
 
 # Evolve: On‑the‑job learning for AI agents
 
-![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org/)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
-![arXiv](https://img.shields.io/badge/arXiv-2603.10600-b31b1b) 
-![License](https://img.shields.io/github/license/AgentToolkit/altk-evolve)
+[![Documentation](https://shields.io/badge/Documentation-Available-blue)](https://agenttoolkit.github.io/altk-evolve)
+[![arXiv](https://img.shields.io/badge/arXiv-2603.10600-b31b1b)](https://arxiv.org/pdf/2603.10600)
+[![License](https://img.shields.io/github/license/AgentToolkit/altk-evolve)](https://www.apache.org/licenses/LICENSE-2.0)
 ![Stars](https://img.shields.io/github/stars/AgentToolkit/altk-evolve?style=social)
 
 **Blog posts:** [IBM announcement](https://www.ibm.com/new/announcements/altk-evolve-on-the-job-learning-for-ai-agents) | [Hugging Face blog](https://huggingface.co/blog/ibm-research/altk-evolve)
