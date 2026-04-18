@@ -8,6 +8,7 @@ class EvolveConfig(BaseSettings):
     namespace_id: str = "evolve"
     settings: BaseSettings | None = None
     clustering_threshold: float = 0.80
+    segmentation_enabled: bool = True
 
 
 # to reload settings call evolve_config.__init__()

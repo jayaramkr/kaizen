@@ -508,7 +508,7 @@ class TestSync:
         mock_urlopen.return_value = mock_response
 
         phoenix_sync.client.search_entities.return_value = []
-        mock_generate_tips.return_value = TipGenerationResult(tips=[], task_description="Task description unknown")
+        mock_generate_tips.return_value = [TipGenerationResult(tips=[], task_description="Task description unknown")]
 
         result = phoenix_sync.sync(limit=10, include_errors=True)
 
@@ -570,7 +570,7 @@ class TestSync:
         mock_tip2.category = "optimization"
         mock_tip2.rationale = "Tip 2 rationale"
         mock_tip2.trigger = "Tip 2 trigger"
-        mock_generate_tips.return_value = TipGenerationResult(tips=[mock_tip1, mock_tip2], task_description="Hello")
+        mock_generate_tips.return_value = [TipGenerationResult(tips=[mock_tip1, mock_tip2], task_description="Hello")]
 
         result = phoenix_sync.sync(limit=10)
 
@@ -632,7 +632,7 @@ class TestSync:
         mock_tip.category = "strategy"
         mock_tip.rationale = "Tip rationale"
         mock_tip.trigger = "Tip trigger"
-        mock_generate_tips.return_value = TipGenerationResult(tips=[mock_tip], task_description="New message")
+        mock_generate_tips.return_value = [TipGenerationResult(tips=[mock_tip], task_description="New message")]
 
         result = phoenix_sync.sync(limit=10)
 

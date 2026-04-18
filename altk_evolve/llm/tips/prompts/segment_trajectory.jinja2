@@ -1,0 +1,44 @@
+Analyze this AI agent trajectory and segment it into logical subtasks.
+
+# Trajectory
+**Total Steps:** {{num_steps}}
+
+{{trajectory_summary}}
+
+# Your Task
+Identify the distinct logical phases of work the agent performed. For each phase, produce a generalized description that would apply to *any* agent performing a similar operation — strip out specific values, user names, IDs, and task-specific details.
+
+**Good description:** "Authenticate with a web service using stored credentials"
+**Bad description:** "Login to Venmo using tr_solo@gmail.com"
+
+**Guidelines:**
+- Group tightly related steps together (e.g., all authentication steps form one subtask)
+- Separate distinct logical phases (discovery, authentication, data retrieval, computation, output)
+- `start_step` and `end_step` are the step numbers shown in the trajectory above (inclusive)
+- Prefer contiguous, non-overlapping ranges where the trajectory allows it
+- A single step can be its own subtask if it represents a clearly distinct phase
+- `purpose` should describe what this subtask achieves, not how it does it
+
+{% if not constrained_decoding_supported %}
+**Output Format (JSON):**
+```json
+{
+    "subtasks": [
+        {
+            "generalized_description": "Authenticate with a web service using stored credentials",
+            "start_step": 1,
+            "end_step": 4,
+            "purpose": "Obtain an access token to make authorized API calls"
+        },
+        {
+            "generalized_description": "Retrieve and filter a list of records",
+            "start_step": 5,
+            "end_step": 9,
+            "purpose": "Fetch the target dataset and apply the required filters"
+        }
+    ]
+}
+```
+
+Return ONLY the JSON object, no other text.
+{% endif %}

@@ -8,12 +8,15 @@ from jinja2 import Template
 from litellm import completion, get_supported_openai_params, supports_response_schema
 from pydantic import ValidationError
 
+from altk_evolve.config.evolve import evolve_config
 from altk_evolve.config.llm import llm_settings
 from altk_evolve.schema.exceptions import EvolveException
 from altk_evolve.schema.tips import DEFAULT_TASK_DESCRIPTION, TipGenerationResponse, TipGenerationResult
 from altk_evolve.utils.utils import clean_llm_response
 
 logger = logging.getLogger(__name__)
+
+_GENERATE_TIPS_TEMPLATE = Template((Path(__file__).parent / "prompts/generate_tips.jinja2").read_text())
 
 
 def parse_openai_agents_trajectory(messages: list[dict]) -> dict:
@@ -26,6 +29,7 @@ def parse_openai_agents_trajectory(messages: list[dict]) -> dict:
         - agent_steps: List of agent reasoning/actions
         - function_calls: List of tool/function calls made
         - num_steps: Total number of agent actions
+        - steps_list: Individual formatted step strings (before joining), for subtask slicing
     """
     agent_steps: list[dict[str, str | dict]] = []
     function_calls: list[dict[str, str | dict]] = []
@@ -80,7 +84,7 @@ def parse_openai_agents_trajectory(messages: list[dict]) -> dict:
                 # Skip empty assistant messages (common from tool-calling patterns)
                 continue
 
-    steps_text = []
+    steps_list = []
     for i, step in enumerate(agent_steps[:50], 1):
         step_type = step["type"]
         content = step["content"]
@@ -89,38 +93,32 @@ def parse_openai_agents_trajectory(messages: list[dict]) -> dict:
             content = content[:2000] + "..."
 
         if step_type == "reasoning":
-            steps_text.append(f"**Step {i} - Reasoning:**\n{content}")
+            steps_list.append(f"**Step {i} - Reasoning:**\n{content}")
         elif step_type == "action":
-            steps_text.append(f"**Step {i} - Action:**\n{content}")
+            steps_list.append(f"**Step {i} - Action:**\n{content}")
         elif step_type == "observation":
-            steps_text.append(f"**Step {i} - Observation:**\n{content}")
+            steps_list.append(f"**Step {i} - Observation:**\n{content}")
 
     return {
         "task_instruction": task_instruction or DEFAULT_TASK_DESCRIPTION,
-        "trajectory_summary": "\n\n".join(steps_text),
+        "trajectory_summary": "\n\n".join(steps_list),
+        "steps_list": steps_list,
         "function_calls": function_calls,
         "num_steps": len([s for s in agent_steps if s["type"] in ["action", "reasoning"]]),
     }
 
 
-def generate_tips(messages: list[dict]) -> TipGenerationResult:
-    prompt_file = Path(__file__).parent / "prompts/generate_tips.jinja2"
-    supported_params = get_supported_openai_params(
-        model=llm_settings.tips_model,
-        custom_llm_provider=llm_settings.custom_llm_provider,
-    )
-    supports_response_format = supported_params and "response_format" in supported_params
-    response_schema_enabled = supports_response_schema(
-        model=llm_settings.tips_model,
-        custom_llm_provider=llm_settings.custom_llm_provider,
-    )
-    constrained_decoding_supported = supports_response_format and response_schema_enabled
-    trajectory_data = parse_openai_agents_trajectory(messages)
-    task_description = trajectory_data["task_instruction"]
-    prompt = Template(prompt_file.read_text()).render(
+def _generate_tips_for_segment(
+    task_description: str,
+    trajectory_slice: str,
+    num_steps: int,
+    constrained_decoding_supported: bool,
+) -> TipGenerationResult:
+    """Generate tips for a single trajectory slice (full or subtask)."""
+    prompt = _GENERATE_TIPS_TEMPLATE.render(
         task_instruction=task_description,
-        num_steps=trajectory_data["num_steps"],
-        trajectory_summary=trajectory_data["trajectory_summary"],
+        num_steps=num_steps,
+        trajectory_summary=trajectory_slice,
         constrained_decoding_supported=constrained_decoding_supported,
     )
 
@@ -138,7 +136,7 @@ def generate_tips(messages: list[dict]) -> TipGenerationResult:
         )
     else:
         litellm.enable_json_schema_validation = False
-        response = (
+        raw = (
             completion(
                 model=llm_settings.tips_model,
                 messages=[{"role": "user", "content": prompt}],
@@ -147,7 +145,8 @@ def generate_tips(messages: list[dict]) -> TipGenerationResult:
             .choices[0]
             .message.content
         )
-        clean_response = clean_llm_response(response)
+        clean_response = clean_llm_response(raw)
+
     if not clean_response:
         logger.warning(f"LLM returned empty response for tip generation. Model: {llm_settings.tips_model}")
         return TipGenerationResult(tips=[], task_description=task_description)
@@ -160,3 +159,64 @@ def generate_tips(messages: list[dict]) -> TipGenerationResult:
     except ValidationError as e:
         logger.warning(f"Failed to validate LLM tip generation response: {e}. Response: {repr(clean_response[:500])}")
         return TipGenerationResult(tips=[], task_description=task_description)
+
+
+def generate_tips(messages: list[dict]) -> list[TipGenerationResult]:
+    """Generate tips from a trajectory, optionally segmented into subtasks.
+
+    When segmentation is enabled (EVOLVE_SEGMENTATION_ENABLED=true, the default),
+    the trajectory is first segmented into logical subtasks. Tips are then generated
+    per subtask and each result carries the subtask's generalized description as
+    task_description — giving downstream clustering much more precise signal than
+    the raw first user message.
+
+    Returns a list with one TipGenerationResult per subtask (or one for the full
+    trajectory when segmentation is disabled or produces fewer than 2 subtasks).
+    """
+    supported_params = get_supported_openai_params(
+        model=llm_settings.tips_model,
+        custom_llm_provider=llm_settings.custom_llm_provider,
+    )
+    supports_response_format = supported_params and "response_format" in supported_params
+    response_schema_enabled = supports_response_schema(
+        model=llm_settings.tips_model,
+        custom_llm_provider=llm_settings.custom_llm_provider,
+    )
+    constrained_decoding_supported = bool(supports_response_format and response_schema_enabled)
+
+    trajectory_data = parse_openai_agents_trajectory(messages)
+    task_instruction = trajectory_data["task_instruction"]
+    steps_list: list[str] = trajectory_data["steps_list"]
+    n_steps = len(steps_list)
+
+    subtasks = []
+    if evolve_config.segmentation_enabled:
+        from altk_evolve.llm.tips.segmentation import segment_trajectory  # avoid circular import
+
+        subtasks = segment_trajectory(messages)
+
+    if len(subtasks) >= 2:
+        results = []
+        for subtask in subtasks:
+            start = max(0, subtask.start_step - 1)
+            end = min(n_steps, subtask.end_step)
+            slice_steps = steps_list[start:end]
+            result = _generate_tips_for_segment(
+                task_description=subtask.generalized_description,
+                trajectory_slice="\n\n".join(slice_steps),
+                num_steps=len(slice_steps),
+                constrained_decoding_supported=constrained_decoding_supported,
+            )
+            results.append(result)
+        return results
+
+    # Fallback: full trajectory (use segmented description if exactly 1 subtask was found)
+    desc = subtasks[0].generalized_description if len(subtasks) == 1 else task_instruction
+    return [
+        _generate_tips_for_segment(
+            task_description=desc,
+            trajectory_slice=trajectory_data["trajectory_summary"],
+            num_steps=trajectory_data["num_steps"],
+            constrained_decoding_supported=constrained_decoding_supported,
+        )
+    ]

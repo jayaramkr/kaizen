@@ -468,34 +468,35 @@ class PhoenixSync:
                 enable_conflict_resolution=False,
             )
 
-        # Generate tips from the trajectory
-        result = generate_tips(trajectory["messages"])
+        # Generate tips from the trajectory (returns one result per subtask)
+        results = generate_tips(trajectory["messages"])
 
-        if result.tips:
-            tip_entities = [
-                Entity(
-                    type="guideline",
-                    content=tip.content,
-                    metadata={
-                        "category": tip.category,
-                        "rationale": tip.rationale,
-                        "trigger": tip.trigger,
-                        "implementation_steps": tip.implementation_steps,
-                        "source_task_id": trajectory["trace_id"],
-                        "source_span_id": trajectory["span_id"],
-                        "task_description": result.task_description,
-                        "creation_mode": "auto-phoenix",
-                    },
-                )
-                for tip in result.tips
-            ]
+        tip_entities = [
+            Entity(
+                type="guideline",
+                content=tip.content,
+                metadata={
+                    "category": tip.category,
+                    "rationale": tip.rationale,
+                    "trigger": tip.trigger,
+                    "implementation_steps": tip.implementation_steps,
+                    "source_task_id": trajectory["trace_id"],
+                    "source_span_id": trajectory["span_id"],
+                    "task_description": result.task_description,
+                    "creation_mode": "auto-phoenix",
+                },
+            )
+            for result in results
+            for tip in result.tips
+        ]
+        if tip_entities:
             self.client.update_entities(
                 namespace_id=self.namespace_id,
                 entities=tip_entities,
                 enable_conflict_resolution=True,
             )
 
-        return len(result.tips)
+        return sum(len(r.tips) for r in results)
 
     def sync(
         self,

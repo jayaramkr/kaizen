@@ -17,6 +17,17 @@ class TipGenerationResponse(BaseModel):
     tips: list[Tip]
 
 
+class SubtaskSegment(BaseModel):
+    generalized_description: str
+    start_step: int
+    end_step: int
+    purpose: str
+
+
+class SegmentationResponse(BaseModel):
+    subtasks: list[SubtaskSegment]
+
+
 @dataclass(frozen=True)
 class TipGenerationResult:
     """Internal result from generate_tips(), pairing tips with the source task description."""

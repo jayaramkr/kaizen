@@ -202,27 +202,29 @@ def save_trajectory(trajectory_data: str, task_id: str | None = None) -> list[Re
         entities=entities,
         enable_conflict_resolution=False,
     )
-    result = generate_tips(messages)
+    results = generate_tips(messages)
 
-    if result.tips:
+    tip_entities = [
+        Entity(
+            type="guideline",
+            content=tip.content,
+            metadata={
+                "category": tip.category,
+                "rationale": tip.rationale,
+                "trigger": tip.trigger,
+                "implementation_steps": tip.implementation_steps,
+                "task_description": result.task_description,
+                "source_task_id": task_id,
+                "creation_mode": "auto-mcp",
+            },
+        )
+        for result in results
+        for tip in result.tips
+    ]
+    if tip_entities:
         get_client().update_entities(
             namespace_id=evolve_config.namespace_id,
-            entities=[
-                Entity(
-                    type="guideline",
-                    content=tip.content,
-                    metadata={
-                        "category": tip.category,
-                        "rationale": tip.rationale,
-                        "trigger": tip.trigger,
-                        "implementation_steps": tip.implementation_steps,
-                        "task_description": result.task_description,
-                        "source_task_id": task_id,
-                        "creation_mode": "auto-mcp",
-                    },
-                )
-                for tip in result.tips
-            ],
+            entities=tip_entities,
             enable_conflict_resolution=True,
         )
 
