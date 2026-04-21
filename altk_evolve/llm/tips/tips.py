@@ -200,8 +200,15 @@ def generate_tips(messages: list[dict]) -> list[TipGenerationResult]:
     if len(subtasks) >= 2:
         results = []
         for subtask in subtasks:
-            start = max(0, subtask.start_step - 1)
-            end = min(n_steps, subtask.end_step)
+            start = min(max(0, subtask.start_step - 1), n_steps)
+            end = min(max(0, subtask.end_step), n_steps)
+            if start >= end:
+                logger.warning(
+                    f"Subtask '{subtask.generalized_description}' has empty step range "
+                    f"(start_step={subtask.start_step}, end_step={subtask.end_step}, "
+                    f"visible_steps={n_steps}); skipping"
+                )
+                continue
             slice_steps = steps_list[start:end]
             result = _generate_tips_for_segment(
                 task_description=subtask.generalized_description,
