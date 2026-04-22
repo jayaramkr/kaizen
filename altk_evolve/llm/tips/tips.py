@@ -203,10 +203,7 @@ def generate_tips(messages: list[dict]) -> list[TipGenerationResult]:
             start = min(max(0, subtask.start_step - 1), n_steps)
             end = min(max(0, subtask.end_step), n_steps)
             if start >= end:
-                logger.debug(
-                    f"Skipping subtask with out-of-range steps "
-                    f"[{subtask.start_step}, {subtask.end_step}] (n_steps={n_steps})"
-                )
+                logger.debug(f"Skipping subtask with out-of-range steps [{subtask.start_step}, {subtask.end_step}] (n_steps={n_steps})")
                 continue
             slice_steps = steps_list[start:end]
             result = _generate_tips_for_segment(
