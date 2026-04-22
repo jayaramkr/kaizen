@@ -213,9 +213,9 @@ def generate_tips(messages: list[dict]) -> list[TipGenerationResult]:
                 constrained_decoding_supported=constrained_decoding_supported,
             )
             results.append(result)
-        if results:
+        if len(results) >= 2:
             return results
-        # All subtasks were out-of-range — fall through to full-trajectory fallback.
+        # Fewer than 2 valid subtask slices — fall through to full-trajectory fallback.
 
     # Fallback: full trajectory (use segmented description if exactly 1 subtask was found)
     desc = subtasks[0].generalized_description if len(subtasks) == 1 else task_instruction
