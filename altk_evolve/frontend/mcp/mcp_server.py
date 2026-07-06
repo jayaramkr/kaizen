@@ -314,6 +314,53 @@ def get_guidelines(
     return get_entities_logic(task, "guideline", user_id=user_id, namespace_id=namespace_id, session_id=session_id)
 
 
+@mcp.tool()
+def get_relevant_guidelines(
+    task: str,
+    top_k: int | None = None,
+    core_support: int | None = None,
+    namespace_id: str | None = None,
+    user_id: str | None = None,
+    session_id: str | None = None,
+) -> str:
+    """
+    Get a dosage-aware set of guidelines for a task: an always-on core plus the top-k
+    guidelines most relevant to this task (retrieved by similarity to the tasks they were
+    learned from).
+
+    Prefer this over 'get_guidelines'/'get_entities' for weaker models, where injecting the
+    whole playbook can hurt and a small, targeted set helps.
+
+    Args:
+        task: A description of the task you want guidelines for.
+        top_k: Max task-specific guidelines to add beyond the core. Defaults to config.
+        core_support: Support threshold for the always-on core. Defaults to config.
+        namespace_id: Optional namespace override. Falls back to the configured default.
+        user_id: Optional caller user ID. Logged for attribution; does not filter results.
+        session_id: Optional session/thread ID. Logged for attribution; does not filter results.
+    """
+    from altk_evolve.llm.guidelines.retrieval import format_selection
+
+    resolved_ns = _resolve_namespace(namespace_id)
+    logger.info(
+        "get_relevant_guidelines for task=%s (namespace=%s, top_k=%s, core_support=%s, user_present=%s, session_present=%s)",
+        task,
+        resolved_ns,
+        top_k,
+        core_support,
+        user_id is not None,
+        session_id is not None,
+    )
+    client = get_client()
+    try:
+        selection = client.select_guidelines(resolved_ns, task, top_k=top_k, core_support=core_support)
+    except NamespaceNotFoundException:
+        _evict_namespace(resolved_ns)
+        resolved_ns = _resolve_namespace(namespace_id)
+        selection = client.select_guidelines(resolved_ns, task, top_k=top_k, core_support=core_support)
+    return format_selection(selection)
+
+
 def _empty_store_user_facts_response(user_id: str) -> str:
     return json.dumps({"user_id": user_id, "stored_count": 0, "updates": []})
 
