@@ -29,6 +29,7 @@ Parse `$ARGUMENTS` positionally and by flag, independently of each other:
    - `gh api --paginate repos/<REPO>/pulls/$1/reviews` — review bodies and verdicts.
    - `gh api --paginate repos/<REPO>/pulls/$1/comments` — the individual inline findings.
    - Correlate each inline comment to its review via `pull_request_review_id`, and keep `path` + `line`/`original_line`. Every prior finding must come back with a fixed / still-open / regressed verdict.
+   - **Diff the whole fix commit**, not just the lines you commented on — anything else that rode along in it is unreviewed. And verify each fix against the *class* of input, not the literal string from your comment: vary whatever makes the original repro work (one element rather than all, one field rather than two). See "Re-reviewing a fix" in `docs/adversarial-review.md`.
 
 3. **Isolate — files *and* execution.** A git worktree isolates files; it does not isolate processes, credentials, host mounts or network. Anything you run from the PR head is code the PR author controls.
    - **Pin the head SHA.** `pull/$1/head` is a mutable ref: `git fetch <remote> pull/$1/head`, then abort unless `git rev-parse FETCH_HEAD` equals the `headRefOid` from step 1 — a force-push in between would leave you reviewing one revision and anchoring comments to another.

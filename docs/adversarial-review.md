@@ -58,6 +58,37 @@ On a **re-review**, the status table is per *finding*, so load the individual fi
 
 **Through-line: evidence over opinion.**
 
+## Re-reviewing a fix
+
+A fix round is the highest-risk code in a PR: written fast, under pressure, in a narrow window of attention, with the reviewer's framing in mind rather than the system's. Give it what you gave the original diff, plus three things that only apply the second time.
+
+**Verify the fix against the class of input, not the string from your comment.** This is the commonest way a fix round fails. A fix checked against the reviewer's literal repro closes that input and leaves its neighbours open — and the result can be *worse* than the state it replaced, because the obvious case now passes while the obscure one still fails silently.
+
+| reported | fix was verified against | what it missed |
+|---|---|---|
+| a ragged JSON array scored a false `1.0` | *all* resamples ragged | *some* resamples ragged — `0.85` became `1.0`, worse than the head it replaced |
+| the escape repair corrupted `C:\new\data` | that exact string | `C:\temp` — one backslash run rather than two, so the evidence the guard relied on was consumed and it failed open |
+
+After re-running the original repro, write down *what makes it work* and vary that: one element instead of all, one field instead of two, one backslash instead of two. If the fix keys on a property, feed it the input that lacks the property.
+
+**Diff the whole fix commit, not only the lines you commented on.** A re-review scoped to "did they fix my findings" misses whatever else rode along. On one round here, four unreferenced prompt templates were added in a commit whose message described only review fixes; they shipped in the wheel and sdist and nothing in the package referenced them. They surfaced only because the file list got read before anchoring inline comments.
+
+**Apply the reproduction standard to your own dismissals.** "I checked and it's fine" needs the evidence that "I checked and it's broken" needs. Twice in one review here a finding was called unreachable — once from probing the wrong input shape, once from reading a drop check and missing that a backfill rewrote the value just before it. Both dismissals were wrong. A finding you talk yourself out of is still a claim.
+
+## Traps in this codebase
+
+**A scoring finding is not verified until it has run through preprocessing.** `compute_json_step_consistency` invites being called directly — it takes a list of responses and a config — but `extract_parsed_responses_from_trajectory` decides what reaches it, and the two disagree in both directions. A response the scorer would reject is often dropped upstream and never arrives, so a scorer-level "regression" evaporates end to end. And the value production actually hands the scorer may be one the parser never returns: a backfilled `[]` rather than the parser's `{}`, for instance, which is what made one finding real that a scorer-only probe had shown as harmless.
+
+Drive the real path:
+
+```python
+parsed  = extract_parsed_responses_from_trajectory(trajectory, config)
+samples = parsed["steps"][0]["sampling"]["parsed_samples"]   # not step["parsed_responses"]
+compute_json_step_consistency(samples, agent_config, min_samples)
+```
+
+The trajectory shape is `{"steps": [{"name": <an agent name from agent_config.yaml>, "sampling": {"raw_samples": [...], "num_samples": N}}]}`. `raw_samples` holds what `resampling.py` emits — a list of tool-call dicts, or a plain string when the model answered without calling a tool, which is the divergence most worth testing.
+
 ## The reusable sub-agent prompt
 
 Fill in the bracketed parts, one instance per risk surface.
