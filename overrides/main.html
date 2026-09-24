@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block styles %}
+{{ super() }}
+<style>
+  github-repo-card {
+    max-width: 800px;
+    --ghrc-radius-lg: .1rem;
+    --ghrc-border: var(--md-primary-fg-color);
+    --ghrc-border-width: .1rem;
+  }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ base_url }}/components/github-repo-card.js"></script>
+<script>
+  (function () {
+    function syncTheme() {
+      const scheme = document.body.getAttribute("data-md-color-scheme");
+      const theme = scheme === "slate" ? "dark" : "light";
+      document.querySelectorAll("github-repo-card").forEach(function (card) {
+        card.setAttribute("theme", theme);
+      });
+    }
+
+    // Set on initial load
+    syncTheme();
+
+    // Re-sync whenever MkDocs changes the color scheme (palette toggle)
+    new MutationObserver(syncTheme).observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-md-color-scheme"],
+    });
+  })();
+</script>
+{% endblock %}
+
+
+{% block tabs %}
+{# Project switcher — sits between the main header bar and the navigation tabs #}
+{% if config.extra.projects %}
+<nav class="project-nav" aria-label="Project navigation">
+  <div class="project-nav__inner md-grid">
+    {% for project in config.extra.projects %}
+    <a href="{{ project.url }}"
+       class="project-nav__item{% if project.active %} project-nav__item--active{% endif %}"
+       {% if not project.active %}target="_self" rel="noopener noreferrer"{% endif %}
+       aria-current="{% if project.active %}page{% else %}false{% endif %}">
+      {% if project.icon %}<span class="project-nav__icon">{{ project.icon }}</span>{% endif %}
+      {{ project.name }}
+    </a>
+    {% endfor %}
+  </div>
+</nav>
+{% endif %}
+{{ super() }}
+{% endblock %}

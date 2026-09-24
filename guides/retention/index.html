@@ -1,0 +1,2329 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Evolve is a component in the Agent Lifecycle Toolkit (ALTK) that gives agent builders the ability to iteratively improve their agents by learning from previous trajectories.">
+      
+      
+      
+        <link rel="canonical" href="https://agenttoolkit.github.io/evolve/guides/retention/">
+      
+      
+        <link rel="prev" href="../memory-hooks/">
+      
+      
+        <link rel="next" href="../../reference/cli/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/logo-32x32.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Data Retention - Agent Lifecycle Toolkit (ALTK)</title>
+      
+    
+    
+
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+<style>
+  github-repo-card {
+    max-width: 800px;
+    --ghrc-radius-lg: .1rem;
+    --ghrc-border: var(--md-primary-fg-color);
+    --ghrc-border-width: .1rem;
+  }
+</style>
+
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+  
+
+<script id="__analytics">function __md_analytics(){function e(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],e("js",new Date),e("config",""),document.addEventListener("DOMContentLoaded",(function(){document.forms.search&&document.forms.search.query.addEventListener("blur",(function(){this.value&&e("event","search",{search_term:this.value})}));document$.subscribe((function(){var t=document.forms.feedback;if(void 0!==t)for(var a of t.querySelectorAll("[type=submit]"))a.addEventListener("click",(function(a){a.preventDefault();var n=document.location.pathname,d=this.getAttribute("data-md-value");e("event","feedback",{page:n,data:d}),t.firstElementChild.disabled=!0;var r=t.querySelector(".md-feedback__note [data-md-value='"+d+"']");r&&(r.hidden=!1)})),t.hidden=!1})),location$.subscribe((function(t){e("config","",{page_path:t.pathname})}))}));var t=document.createElement("script");t.async=!0,t.src="https://www.googletagmanager.com/gtag/js?id=",document.getElementById("__analytics").insertAdjacentElement("afterEnd",t)}</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-retention" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Agent Lifecycle Toolkit (ALTK)" class="md-header__button md-logo" aria-label="Agent Lifecycle Toolkit (ALTK)" data-md-component="logo">
+      
+  <img src="../../assets/logo-512x512.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Agent Lifecycle Toolkit (ALTK)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Data Retention
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/AgentToolkit/altk-evolve" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AgentToolkit/altk-evolve
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+
+
+<nav class="project-nav" aria-label="Project navigation">
+  <div class="project-nav__inner md-grid">
+    
+    <a href="https://agenttoolkit.github.io/altk-main/"
+       class="project-nav__item"
+       target="_self" rel="noopener noreferrer"
+       aria-current="false">
+      
+      ALTK
+    </a>
+    
+    <a href="https://agenttoolkit.github.io/altk-evolve/"
+       class="project-nav__item project-nav__item--active"
+       
+       aria-current="page">
+      
+      Evolve
+    </a>
+    
+  </div>
+</nav>
+
+
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../installation/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Installation
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../tutorials/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../configuration/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/cli/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../integrations/claude/evolve-lite/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Integrations
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../results/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Results
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../operations/docker-testing/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Operations
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Agent Lifecycle Toolkit (ALTK)" class="md-nav__button md-logo" aria-label="Agent Lifecycle Toolkit (ALTK)" data-md-component="logo">
+      
+  <img src="../../assets/logo-512x512.png" alt="logo">
+
+    </a>
+    Agent Lifecycle Toolkit (ALTK)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/AgentToolkit/altk-evolve" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    AgentToolkit/altk-evolve
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/hello_world/bob/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Starter Example (IBM Bob)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/hello_world/claude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Starter Example (Claude Code)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/hello_world/codex/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Starter Example (Codex)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/guidelines-loop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Starter Example (Evolving Agent Loop)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guidelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enabling Guidelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../low-code-tracing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Low-Code Tracing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../phoenix-sync/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Phoenix Sync
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extract-trajectories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Extract Trajectories
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../memory-hooks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memory Hooks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Retention
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Retention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#policy-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Policy format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Policy format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-match-shadowing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-match shadowing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flag-vs-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flag vs delete
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dry-run-by-default-and-how-to-apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dry run by default, and how to apply
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-unused-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The unused signal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The unused signal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-the-unused-signal-is-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When the unused signal is missing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-session-cascade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The session cascade
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugin-side-retention-evolve-lite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin-side retention (evolve-lite)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plugin-side retention (evolve-lite)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-it-is-weaker-than-the-package-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where it is weaker than the package side
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-excluded-from-the-plugin-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is excluded from the plugin sweep
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/policies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Policies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrations/claude/evolve-lite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evolve Lite (Claude Code)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../results/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Results
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations/docker-testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#policy-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Policy format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Policy format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#first-match-shadowing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First-match shadowing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flag-vs-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flag vs delete
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dry-run-by-default-and-how-to-apply" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dry run by default, and how to apply
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-unused-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The unused signal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The unused signal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-the-unused-signal-is-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When the unused signal is missing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-session-cascade" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The session cascade
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plugin-side-retention-evolve-lite" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plugin-side retention (evolve-lite)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plugin-side retention (evolve-lite)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#where-it-is-weaker-than-the-package-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where it is weaker than the package side
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-excluded-from-the-plugin-sweep" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is excluded from the plugin sweep
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known limitations
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../configuration/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Guides
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="data-retention">Data Retention<a class="headerlink" href="#data-retention" title="Permanent link">&para;</a></h1>
+<p>Memories accumulate. Some go stale, some are never read again, and some — session transcripts especially — carry data you agreed to keep for a bounded time. <code>altk_evolve.retention</code> applies a declarative policy to a namespace: it selects entities by type and age, then either <strong>flags</strong> them for review or <strong>deletes</strong> them, and can cascade a session delete to the memories derived from that session.</p>
+<p>It is a sweep, not an interceptor: you run it (CLI, cron, or in code), it reports what it would do, and it only mutates when you say so. <strong>The <code>run</code> operation defaults to dry run.</strong> Explicit <code>mark</code> and <code>sweep</code> commands perform their named operations.</p>
+<p>For PostgreSQL, applied runs use <a href="../retention-api/#postgresql-collection">durable mark and sweep</a>: marking records candidates without hooks; sweeping checks current legal holds directly and commits deletion with an audit receipt. The lower-level engine and other backends retain the immediate, hook-based behavior described below.</p>
+<h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>evolve<span class="w"> </span>retention<span class="w"> </span>policies<span class="w"> </span>create<span class="w"> </span>standard<span class="w"> </span>--namespace<span class="w"> </span>my-service
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>evolve<span class="w"> </span>retention<span class="w"> </span>policies<span class="w"> </span>rules<span class="w"> </span>add<span class="w"> </span>standard<span class="w"> </span>--name<span class="w"> </span>old-memories<span class="w"> </span>--namespace<span class="w"> </span>my-service<span class="w"> </span>--max-age-days<span class="w"> </span><span class="m">90</span><span class="w"> </span>--action<span class="w"> </span>delete
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>evolve<span class="w"> </span>retention<span class="w"> </span>run<span class="w"> </span>standard<span class="w"> </span>--namespace<span class="w"> </span>my-service<span class="w"> </span>--initiated-by<span class="w"> </span>alice<span class="w">          </span><span class="c1"># dry run</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>evolve<span class="w"> </span>retention<span class="w"> </span>run<span class="w"> </span>standard<span class="w"> </span>--namespace<span class="w"> </span>my-service<span class="w"> </span>--initiated-by<span class="w"> </span>alice<span class="w"> </span>--apply<span class="w">  </span><span class="c1"># enforce</span>
+</code></pre></div>
+<p>Or in code:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">altk_evolve.frontend.client.evolve_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvolveClient</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">altk_evolve.retention</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetentionEngine</span><span class="p">,</span> <span class="n">RetentionPolicy</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">policy</span> <span class="o">=</span> <span class="n">RetentionPolicy</span><span class="o">.</span><span class="n">from_mapping</span><span class="p">({</span><span class="s2">&quot;rules&quot;</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;old-memories&quot;</span><span class="p">,</span> <span class="s2">&quot;max_age_days&quot;</span><span class="p">:</span> <span class="mi">90</span><span class="p">,</span> <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="s2">&quot;delete&quot;</span><span class="p">}</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">]})</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">report</span> <span class="o">=</span> <span class="n">RetentionEngine</span><span class="p">(</span><span class="n">EvolveClient</span><span class="p">())</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="s2">&quot;my-namespace&quot;</span><span class="p">,</span> <span class="n">policy</span><span class="p">)</span>  <span class="c1"># dry_run=True by default</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nb">print</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">summary</span><span class="p">())</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">report</span><span class="o">.</span><span class="n">deleted</span><span class="p">,</span> <span class="o">*</span><span class="n">report</span><span class="o">.</span><span class="n">flagged</span><span class="p">]:</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="nb">print</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">entity_id</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">reason</span><span class="p">,</span> <span class="s2">&quot;—&quot;</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">detail</span><span class="p">)</span>
+</code></pre></div>
+<p>Or through the MCP server:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>validate_retention_policy(policy=&#39;{&quot;rules&quot;:[...]}&#39;)
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>put_retention_policy(policy_id=&#39;standard&#39;, name=&#39;Standard&#39;, policy=&#39;{&quot;rules&quot;:[...]}&#39;)
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>list_retention_policies()
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>run_retention(policy_id=&#39;standard&#39;)                    # dry run
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>run_retention(policy_id=&#39;standard&#39;, dry_run=false)     # enforce
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>list_retention_runs(policy_id=&#39;standard&#39;)
+</code></pre></div>
+<p>The MCP report includes the retention item plus a pre-action entity snapshot
+(<code>content_preview</code>, attribution metadata, and session/provenance identifiers),
+so an audit UI can still explain an applied deletion after the entity is gone.
+<code>as_of</code> is an optional ISO-8601 clock override for deterministic audits and
+demonstrations. Evolve owns both the policy catalog and the run history. With a
+PostgreSQL entity backend those records use the same PostgreSQL database; other
+backends use a local SQLite catalog, whose location can be overridden with
+<code>EVOLVE_RETENTION_STORE_PATH</code>.</p>
+<p>An integrating service may pass <code>additional_matches</code> to <code>run_retention</code> when a
+criterion depends on data outside Evolve, such as whether a source conversation
+still exists. Evolve re-resolves each entity under the run's metadata filters,
+performs the deletion through the normal hook path, and includes the result in
+the persisted report.</p>
+<p><a href="https://github.com/AgentToolkit/altk-evolve/blob/main/examples/retention_demo.py"><code>examples/retention_demo.py</code></a> is a runnable end-to-end walkthrough.</p>
+<h2 id="policy-format">Policy format<a class="headerlink" href="#policy-format" title="Permanent link">&para;</a></h2>
+<p>A policy is an ordered list of rules, in YAML or JSON:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">rules</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unused-guidelines</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="nt">entity_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">guideline</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="nt">max_unused_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">180</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">delete</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">on_missing_access_signal</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">skip</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stale-guidelines</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">    </span><span class="nt">entity_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">guideline</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="nt">max_age_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">90</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flag</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">old-sessions</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="nt">entity_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">trajectory</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="nt">max_age_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">365</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">delete</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="nt">cascade_derived</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>Required. Surfaced in every report line, so make it explain itself.</td>
+</tr>
+<tr>
+<td><code>entity_type</code></td>
+<td>Only match this type (<code>guideline</code>, <code>trajectory</code>, …). Omit to match every type.</td>
+</tr>
+<tr>
+<td><code>max_age_days</code></td>
+<td>Match entities whose <code>created_at</code> is older than this.</td>
+</tr>
+<tr>
+<td><code>max_unused_days</code></td>
+<td>Match entities not read in this many days (see <a href="#the-unused-signal">The unused signal</a>).</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td><code>flag</code> (default) or <code>delete</code>.</td>
+</tr>
+<tr>
+<td><code>on_missing_access_signal</code></td>
+<td>For a <code>delete</code> rule: what to do when an <code>unused</code> match has no real <code>last_accessed</code> stamp. <code>skip</code> (default), <code>flag</code>, or <code>delete</code> — see <a href="#when-the-unused-signal-is-missing">When the unused signal is missing</a>.</td>
+</tr>
+<tr>
+<td><code>cascade_derived</code></td>
+<td>On a <code>delete</code> of a session entity, also delete the memories derived from it.</td>
+</tr>
+</tbody>
+</table>
+<p>Every rule must set <code>max_age_days</code> and/or <code>max_unused_days</code> — a rule with no threshold is a config error, not a match-everything rule.</p>
+<p><strong>Rules are evaluated top-to-bottom and the first match wins per entity</strong>, so put narrow rules first. One exception, deliberately: a cascade <code>delete</code> supersedes a <code>flag</code> an earlier rule had already assigned to the same entity. Delete always wins over flag; otherwise the first writer wins.</p>
+<h3 id="first-match-shadowing">First-match shadowing<a class="headerlink" href="#first-match-shadowing" title="Permanent link">&para;</a></h3>
+<p>Because the first matching rule wins and never re-evaluates, an earlier broad rule can <strong>shadow</strong> a later one so it can never fire. The classic trap is ordering a short-threshold <code>flag</code> before a long-threshold <code>delete</code> on the same type:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># WRONG — the delete is unreachable</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">stale-guidelines</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="nt">entity_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">guideline</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="nt">max_age_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">90</span><span class="w">        </span><span class="c1"># any 180-day-unused guideline is also &gt;90 days old…</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flag</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unused-guidelines</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="nt">entity_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">guideline</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="nt">max_unused_days</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">180</span><span class="w">    </span><span class="c1"># …so this rule never wins: the flag above always matches first</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">  </span><span class="nt">action</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">delete</span>
+</code></pre></div>
+<p>Any guideline unused for 180 days is necessarily more than 90 days old, so the <code>flag</code> rule always matches it first and the <code>delete</code> never runs. Order is <strong>escalation, not accumulation</strong>: put the more aggressive / longer-threshold rule first, so the safety-net <code>flag</code> catches only what the <code>delete</code> didn't. <code>examples/retention.example.yaml</code> ships the corrected ordering.</p>
+<h2 id="flag-vs-delete">Flag vs delete<a class="headerlink" href="#flag-vs-delete" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong><code>flag</code></strong> is non-destructive. It merges three keys into the entity's metadata — <code>retention_flagged_at</code>, <code>retention_reason</code>, <code>retention_rule</code> — and leaves content untouched. Use it to build a review queue, or as a soft first stage before a later delete rule.</li>
+<li><strong><code>delete</code></strong> removes the entity through <code>EvolveClient.delete_entity_by_id</code>. There is no undo.</li>
+</ul>
+<p>Because deletes go through the client's public API, they flow through the <code>memory_pre_delete</code> hook — so a legal-hold plugin can veto a retention delete (see <a href="../memory-hooks/">Memory Hooks</a>). A vetoed delete surfaces as an entry in <code>RetentionReport.errors</code>; the sweep continues with the remaining entities rather than aborting.</p>
+<h2 id="dry-run-by-default-and-how-to-apply">Dry run by default, and how to apply<a class="headerlink" href="#dry-run-by-default-and-how-to-apply" title="Permanent link">&para;</a></h2>
+<p><code>RetentionEngine.apply()</code> defaults to <code>dry_run=True</code>, and the CLI requires an explicit <code>--apply</code>. A dry run reads the namespace, computes every decision, and mutates nothing; the returned <code>RetentionReport</code> is identical in shape to an enforced one, with <code>dry_run=True</code>.</p>
+<p>Each <code>RetentionItem</code> carries five things: <code>entity_id</code>, <code>entity_type</code>, <code>action</code>, <code>reason</code> (<code>age</code> / <code>unused</code> / <code>cascade:&lt;trace_id&gt;</code>) and <code>rule</code> — plus <code>detail</code>, a human-readable <em>why</em> that names the numbers the decision was made on. Here is an illustrative rendering of a dry run of the <a href="#policy-format">example policy above</a> over a small namespace — an old session, a memory derived from it, a stale-but-recently-read guideline, and an ancient never-recalled guideline:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>DELETE  4   trajectory reason=age          rule=old-sessions
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>        why: created 400.0d ago &gt; max_age_days=365
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>DELETE  3   guideline  reason=cascade:T1   rule=old-sessions
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>        why: derived from session 4 (metadata.source_task_id == T1), which this rule deletes
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>FLAG    1   guideline  reason=age          rule=stale-guidelines
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>        why: created 200.0d ago &gt; max_age_days=90
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>SKIP    2   guideline  reason=unused       rule=unused-guidelines
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>        why: matched but not deleted: not read for 400.0d &gt; max_unused_days=180 — no metadata.last_accessed
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>             on this entity, so disuse was measured from created_at; …; on_missing_access_signal=skip
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>warning: 3 of 4 entities carry no metadata.last_accessed, so their disuse was measured from created_at …
+</code></pre></div>
+<p>Note the last two lines. The stale guideline is <strong>flagged</strong> by the <code>age</code> rule (<code>stale-guidelines</code>), not by the delete rule. The ancient never-recalled guideline <em>matches</em> the <code>unused-guidelines</code> <strong>delete</strong> rule, but because it carries no <code>last_accessed</code> stamp its disuse was only inferred from <code>created_at</code>, so the rule's default <code>on_missing_access_signal: skip</code> <strong>spares</strong> it — it lands in <code>report.skipped</code> (the report’s <code>skipped</code> entries), never deleted and never flagged. See <a href="#when-the-unused-signal-is-missing">When the unused signal is missing</a>.</p>
+<p>Read the dry run before you apply. That is the whole point of it.</p>
+<h2 id="the-unused-signal">The unused signal<a class="headerlink" href="#the-unused-signal" title="Permanent link">&para;</a></h2>
+<p><code>max_unused_days</code> measures time since the entity was last <em>read</em>, from <code>metadata.last_accessed</code>. Nothing in Evolve's core write path sets that key — something has to record the access:</p>
+<ul>
+<li><strong><code>AccessStampPlugin</code></strong> (shipped with the <a href="../memory-hooks/">hook seam</a>) stamps <code>last_accessed</code> on every entity returned by a public <code>search_entities</code>, via <code>memory_post_read</code>. This is the automatic path, and <strong>enabling it is what makes an unused rule mean anything</strong>. Note its cost: fire-and-forget tasks are awaited before the read returns, so every public read pays one metadata write per returned entity (~3.7 ms vs ~0.1 ms for a 10-entity filesystem read).</li>
+<li><strong><code>EvolveClient.record_access(namespace_id, entity_ids)</code></strong> is the explicit path, for callers that do not run hooks, or that want to record a <em>use</em> that was not a store read — a memory pulled from a cache and actually acted on, say. It goes through the same core function as the plugin (<code>build_access_stamps</code>), so the key, the format, and the one-stamp-per-batch behaviour are identical. Running both is harmless.</li>
+<li><strong>The MCP <code>record_access</code> tool</strong> exposes that explicit path to remote integrations. The MCP <code>list_entities</code> tool defaults to an administrative scan that does not stamp access; set <code>record_access=true</code> when the list is a genuine user-facing recall.</li>
+</ul>
+<p><strong>If neither is in play, the signal does not exist.</strong> The engine then falls back to <code>created_at</code> — and says so, rather than quietly pretending it measured disuse. Every affected item's <code>detail</code> names the fallback, and the report carries a run-level warning:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>warning: 4 of 5 entities carry no metadata.last_accessed, so their disuse was measured from
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>created_at — for those entities an unused rule behaves like an age rule. Enable
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>AccessStampPlugin (or call EvolveClient.record_access) for a real recall signal.
+</code></pre></div>
+<p>This is a change from the original prototype, where the fallback was silent and — because nothing called <code>record_access</code> — universal.</p>
+<h3 id="when-the-unused-signal-is-missing">When the unused signal is missing<a class="headerlink" href="#when-the-unused-signal-is-missing" title="Permanent link">&para;</a></h3>
+<p>Falling back to <code>created_at</code> is only <em>reporting</em> the degraded signal — it does not decide whether to act on it. That decision is a per-rule knob, <code>on_missing_access_signal</code>, which applies <strong>only to <code>delete</code> rules matching on <code>unused</code> where the entity has no real <code>last_accessed</code> stamp</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Behaviour on an unstamped <code>unused</code> delete match</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>skip</code></td>
+<td><strong>Default, fail-safe.</strong> Do not act. The entity is recorded in <code>report.skipped</code> (and shown in the CLI's "Skipped" table) with the reason, so you can see what was spared.</td>
+</tr>
+<tr>
+<td><code>flag</code></td>
+<td>Downgrade the delete to a non-destructive <code>flag</code>.</td>
+</tr>
+<tr>
+<td><code>delete</code></td>
+<td>Delete on the <code>created_at</code> fallback — the original behaviour, now an explicit opt-in.</td>
+</tr>
+</tbody>
+</table>
+<p>The default is <code>skip</code> because a <code>delete</code> rule whose signal is silently off (no <code>AccessStampPlugin</code>, no <code>record_access</code>) would otherwise delete every matched entity from its creation date — data loss with the safety mechanism disabled. <code>skip</code> <strong>only bites deletes</strong>: a <code>flag</code> rule still flags a never-stamped entity (that is not data loss), an entity <em>with</em> a real stamp is unaffected, and an <code>age</code>-driven match is unaffected (age from <code>created_at</code> is a legitimate signal). Turn a rule up to <code>delete</code> once you have confirmed access stamping is on, or to <code>flag</code> to build a review queue instead.</p>
+<p>The plugin-side skill exposes the same field with the same default, keyed off the recall audit log instead of <code>metadata.last_accessed</code>.</p>
+<h2 id="the-session-cascade">The session cascade<a class="headerlink" href="#the-session-cascade" title="Permanent link">&para;</a></h2>
+<p>Deleting an old session transcript without deleting the memories extracted from it leaves the data behind under a different name. <code>cascade_derived: true</code> on a <code>delete</code> rule closes that: when a session entity is deleted, every entity whose <code>metadata.source_task_id</code> equals the session's trace id is deleted with it, with <code>reason="cascade:&lt;trace_id&gt;"</code>.</p>
+<p>Derived entities are deleted <strong>regardless of their own age</strong> — that is the point. A guideline extracted yesterday from a session that ages out today goes with it.</p>
+<p>There used to be a convention split here: the MCP server's <code>save_trajectory</code> wrote <code>metadata.task_id</code> while Phoenix sync wrote <code>metadata.trace_id</code>, and the cascade keyed on <code>trace_id</code> — so MCP-saved sessions silently never cascaded. Two things now fix that:</p>
+<ol>
+<li><strong><code>MetadataNormalizerPlugin</code></strong> (hook seam) copies <code>task_id</code> → <code>trace_id</code> on <code>memory_pre_write</code>, making <code>trace_id</code> canonical for everything written while the plugin is configured. The hook seam is always live, so once <code>MetadataNormalizerPlugin</code> is in your plugin list every backend write flows through it.</li>
+<li>The engine additionally <strong>falls back to <code>task_id</code></strong> when reading a session's trace id, so sessions written <em>before</em> the normalizer existed still cascade. <code>trace_id</code> wins when both are present.</li>
+</ol>
+<p>Both paths are covered by tests in <code>tests/unit/test_retention.py</code>.</p>
+<h2 id="plugin-side-retention-evolve-lite">Plugin-side retention (evolve-lite)<a class="headerlink" href="#plugin-side-retention-evolve-lite" title="Permanent link">&para;</a></h2>
+<p>The <code>evolve-lite</code> plugin ships a <code>retention</code> skill with the same shape — same rule schema, same flag/delete actions, same dry-run default, same cascade concept — running over the plugin's <code>.evolve/</code> file store instead of a backend. It is stdlib-only (<code>plugin-source/lib/retention.py</code>), because plugin scripts run in whatever Python the host provides.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python3<span class="w"> </span>&lt;plugin&gt;/skills/evolve-lite/retention/scripts/run_retention.py<span class="w">           </span><span class="c1"># dry run</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>python3<span class="w"> </span>&lt;plugin&gt;/skills/evolve-lite/retention/scripts/run_retention.py<span class="w"> </span>--apply<span class="w">   </span><span class="c1"># enforce</span>
+</code></pre></div>
+<p>Rules live in a <code>retention:</code> block in <code>evolve.config.yaml</code>, or in a standalone file passed with <code>--policy</code>. Every applied action appends an <code>event: "retention"</code> row to <code>.evolve/audit.log</code>.</p>
+<h3 id="where-it-is-weaker-than-the-package-side">Where it is weaker than the package side<a class="headerlink" href="#where-it-is-weaker-than-the-package-side" title="Permanent link">&para;</a></h3>
+<p>The plugin store is markdown files with small frontmatter, not a backend with per-entity metadata, so each signal degrades. These gaps are real and worth knowing before you point a <code>delete</code> rule at the store:</p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Package</th>
+<th>Plugin</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>age</td>
+<td><code>created_at</code> on the entity</td>
+<td><strong>file mtime</strong> — there is no <code>created_at</code> in the store</td>
+<td>mtime is a <em>modification</em> time: editing an entity resets its age clock. (Flagging deliberately restores the mtime, so the sweep itself never resets it.)</td>
+</tr>
+<tr>
+<td>unused</td>
+<td><code>metadata.last_accessed</code>, stamped automatically by <code>AccessStampPlugin</code></td>
+<td>latest <code>recall</code> row in <code>.evolve/audit.log</code> naming the entity id <code>&lt;type&gt;/&lt;name&gt;</code></td>
+<td>the recall audit is <strong>model-invoked</strong> (the agent runs <code>audit_recall.py</code> per <code>EVOLVE.md</code>), so a missing row means "no recorded recall", not "not used". A degraded-signal warning is emitted, same as package-side.</td>
+</tr>
+<tr>
+<td>cascade</td>
+<td><code>metadata.source_task_id == trace_id</code>, stamped by the writers</td>
+<td>a <code>trajectory:</code> frontmatter key naming the session file</td>
+<td><strong>nothing in the shipped plugin writes that key today.</strong> <code>entity_io</code> supports and preserves it, but neither the save flow nor <code>adapt-memory</code> populates it — so <code>cascade_derived</code> is effectively inert plugin-side unless the link was set by hand or by a downstream tool. Deleting a session does <em>not</em> clean up its derived memories the way the package side does.</td>
+</tr>
+</tbody>
+</table>
+<p>Trajectory files are opaque JSON with no frontmatter, so a <code>flag</code> on a trajectory is recorded in the audit log only, not on the file.</p>
+<h3 id="what-is-excluded-from-the-plugin-sweep">What is excluded from the plugin sweep<a class="headerlink" href="#what-is-excluded-from-the-plugin-sweep" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>.evolve/entities/subscribed/</code></strong> — git clones owned by the <code>sync</code> skill. A local delete there would simply be restored by the next sync, so subscribed entities are skipped entirely.</li>
+<li><strong><code>.evolve/public/</code></strong> — the publish tree; retention does not touch published entities.</li>
+<li>Symlinks and anything under a <code>.git</code> directory.</li>
+</ul>
+<p>In scope: private entities under <code>.evolve/entities/</code> and session files under <code>.evolve/trajectories/</code>.</p>
+<h2 id="operational-notes">Operational notes<a class="headerlink" href="#operational-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The engine scans up to a fetch limit — <code>RetentionEngine.FETCH_LIMIT</code> (100,000) by default, overridable per call via the <code>scan_limit</code> argument to <code>apply()</code> / <code>evaluate()</code> — and holds the entities in memory to build the provenance index. When a scan comes back holding exactly the limit, the report carries a <code>warnings</code> entry saying entities beyond it were not evaluated (and so not cascaded); raise <code>scan_limit</code> or batch the namespace. Very large namespaces will want batching; that is not implemented.</li>
+<li>One failing entity does not abort the sweep — the failure is logged and recorded in <code>report.errors</code>, and the remaining entities are processed. The CLI exits non-zero when <code>errors</code> is non-empty.</li>
+<li>Naive <code>created_at</code> values are treated as UTC.</li>
+<li>Retention is not a hook: it is a periodic sweep you schedule. There is no automatic expiry on write or read.</li>
+<li>Retention and administrative inventory use the client's non-access scan path, so a compliance sweep does not refresh every entity's <code>last_accessed</code> timestamp.</li>
+</ul>
+<h2 id="known-limitations">Known limitations<a class="headerlink" href="#known-limitations" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>A running service is required.</strong> The Evolve server owns <a href="../retention-scheduling/">namespace schedules and execution</a>; embedded hosts must attach the scheduling runtime to their application lifespan.</li>
+<li><strong>No restore.</strong> <code>delete</code> is final. Use <code>flag</code> first if you want a review stage.</li>
+<li><strong><code>max_unused_days</code> is only as good as your access stamping</strong> — see above. Without <code>AccessStampPlugin</code> or <code>record_access</code>, it is an age rule wearing a different name.</li>
+<li><strong>The plugin-side cascade needs a link nothing writes yet</strong> — see the table above.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../memory-hooks/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Memory Hooks">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Memory Hooks
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../reference/cli/" class="md-footer__link md-footer__link--next" aria-label="Next: CLI">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                CLI
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 Agent Lifecycle Toolkit (ALTK) project – <a href="#__consent">Change cookie settings</a>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/AgentToolkit/altk-evolve" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M202.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1M496 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2m-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3m-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+  
+
+
+<h4>Cookie consent</h4>
+<p>We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users find what they're searching for. With your consent, you're helping us to make our documentation better.</p>
+<input class="md-toggle" type="checkbox" id="__settings" >
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="analytics" checked>
+      <span class="task-list-indicator"></span>
+      Google Analytics
+    </label>
+  </li>
+
+      
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="github" checked>
+      <span class="task-list-indicator"></span>
+      GitHub
+    </label>
+  </li>
+
+      
+    
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+    
+      <label class="md-button" for="__settings">Manage settings</label>
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.tabs.link", "content.code.annotate", "content.code.copy", "content.tooltips", "announce.dismiss", "navigation.footer", "navigation.tabs", "navigation.indexes", "navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.path", "navigation.sections", "navigation.top", "navigation.tracking", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+<script src="../../components/github-repo-card.js"></script>
+<script>
+  (function () {
+    function syncTheme() {
+      const scheme = document.body.getAttribute("data-md-color-scheme");
+      const theme = scheme === "slate" ? "dark" : "light";
+      document.querySelectorAll("github-repo-card").forEach(function (card) {
+        card.setAttribute("theme", theme);
+      });
+    }
+
+    // Set on initial load
+    syncTheme();
+
+    // Re-sync whenever MkDocs changes the color scheme (palette toggle)
+    new MutationObserver(syncTheme).observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-md-color-scheme"],
+    });
+  })();
+</script>
+
+  </body>
+</html>
